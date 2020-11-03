@@ -44,33 +44,39 @@ for((i=0;i>-1;i++))
 do
 let numb="$i%$maxFilesNumber+1"
 filename="backup$numb.zip"
+
 if [ -f $filename ]
 then
 rm -r $filename
 fi
 zip -r $filename $(find . -name "*$3") > /dev/null
-if [ -f files ]
+if [ -f ~/UNZIPED ]
 then
-rm -r files
+rm -r ~/UNZIPED
 fi
-mkdir files
-cp $filename files/
-cd files/
-unzip $filename > /dev/null
-cd $1
-mv files/$filename $2
-h="ls *$3 | md5sum"
-h1="ls files/ | md5sum"
-let backnumb="$i+1"
-if [ $6 -eq 1 ]
-then
-if [ h==h1 ]
-then
-echo "Backup number $backnumb was made successfully." >> ~/LOGFILE.txt
-else
-echo "Error in backup number $backnumb." >> ~/LOGFILE.txt
-fi
-fi
-rm -r files
+mkdir ~/UNZIPED
+unzip $filename -d ~/UNZIPED > /dev/null
+
+
+
+cd ~/UNZIPED || exit
+if [ -r forsum ]; then rm -r forsum; fi
+mkdir forsum
+cd forsum || exit
+unzip -o $1$filename > /dev/null
+for i in $(cat *$3 | md5sum) 
+do
+zipSum=$i
+break
+done
+cd .. || exit
+for i in $(cat *$3 | md5sum) 
+do
+origSum=$i
+break
+done
+if [ "$origSum" = "$zipSum" ]; then echo "Backup Sueccessed"; else echo "Error"; fi
+rm -r forsum
+rm -r ~/UNZIPED
 sleep $period
 done
