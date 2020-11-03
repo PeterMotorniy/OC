@@ -1,0 +1,75 @@
+#!/bin/bash
+if [  "$1" = "--help" ] || [ "$1" = "--h" ] || [ "$1" = "-help" ] || [ "$1" = "-h" ] || [ "$1" = ""  ]
+then
+echo -e "bash_backup: bash_backup filesDir backupDir extension [period] [maxBackupFiles] [backupStatus]"
+echo -e " Makes a backup of all files from the specified folder"
+echo -e ""
+echo -e " Finds all files with specified extention in the folder and puts their archive copies in a special directory once in a while. Аfter starting the program, all files from the folder backupDir will be deleted."
+echo -e ""
+echo -e " Arguments:"
+echo -e " filesDir: Path to directory to backup."
+echo -e " backupDir: Path to directory to store backups."
+echo -e " extension: Extension of files to backup."
+echo -e " period: Period of making backups in seconds. Default value is 60."
+echo -e " maxBackupFiles: Number of backups that you need to store. Earlier versions will be replaced with more up-to-date versions in the course of work. Default value is 2."
+echo -e " backupStatus: If backupStatus = 1 program will create LOGFILE.txt in folder ~/ where will be stored results of making backups. Backup ... was made successfully means that files integrity was not compromised. Error in ... means that an error occurred while creating a copy of the files. If backupStatus != 1 LOGFILE.txt will not be created. "
+echo -e ""
+echo -e " Exit status:"
+echo -e " Program returns 0 if it was called with atribute --help. Program returns 1 if an error occurred during execution. In other cases during normal operation it doesn't return anything and works in a constant loop."
+exit 0;
+fi
+rm -r "$2"
+mkdir "$2"
+if [ -n "$4" ]
+then
+period=$4
+else
+period=60
+fi
+if [ -n "$5" ]
+then
+maxFilesNumber=$5
+else
+maxFilesNumber=2
+fi
+if [ -f LOGFILE.txt ]
+then
+rm -r ~/LOGFILE.txt
+fi
+if [ "$6" -eq 1 ]
+then
+touch ~/LOGFILE.txt
+fi
+cd "$1" || exit 1
+for((i=0;i>-1;i++))
+do
+(( numb="$i%$maxFilesNumber+1" ))
+filename="backup$numb.zip"
+if [ -f $filename ]
+then
+rm -r $filename
+fi
+zip -r "$filename" "$(find . -name "*$3")" > /dev/null
+if [ -f files ]
+then
+rm -r files
+fi
+mkdir files
+cp $filename files/
+cd files/ || exit 1
+unzip $filename > /dev/null
+cd "$1" || exit 1
+mv "files/$filename" "$2"
+(( backnumb="$i+1" ))
+if [ "$6" -eq 1 ]
+then
+if [ "ls *$3 | md5sum" == "ls files/ | md5sum" ]
+then
+echo "Backup number $backnumb was made successfully." >> ~/LOGFILE.txt
+else
+echo "Error in backup number $backnumb." >> ~/LOGFILE.txt
+fi
+fi
+rm -r files
+sleep $period
+done
