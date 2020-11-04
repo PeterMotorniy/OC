@@ -5,7 +5,7 @@ then
 echo -e "bash_backup: bash_backup filesDir backupDir extension [period] [maxBackupFiles] [backupStatus]"
 echo -e " Makes a backup of all files from the specified folder"
 echo -e ""
-echo -e " Finds all files with specified extention in the folder and puts their archive copies in a special directory once in a while"
+echo -e " Finds all files with specified extention in the folder and puts their archive copies in a special directory once in a while. After starting the pragram backupDir will be formated"
 echo -e ""
 echo -e " Arguments:"
 echo -e " filesDir: Path to directory to backup."
@@ -37,6 +37,7 @@ if [ -f LOGFILE.txt ]
 then
 rm -r ~/LOGFILE.txt
 fi
+
 if [ "$6" -eq 1 ]
 then
 touch ~/LOGFILE.txt
@@ -52,14 +53,18 @@ then
 rm -r $filename
 fi
 zip -r $filename $(find . -name "*$3") > /dev/null
-
 mv $filename $2
+
+if [ "$6" -eq 1 ]
+then
 cd ~/ || exit
+
 if [ -r forsum ]
 then rm -r forsum
 fi
 mkdir forsum
 cp $2$filename ~/
+
 unzip -o ~/$filename -d forsum > /dev/null
 rm  ~/$filename
 cd ~/forsum || exit
@@ -67,7 +72,12 @@ a="cat "*$3" | md5sum"
 cd $1 || exit
 b="cat "*$3" | md5sum"
 let backnumb="$i+1"
-if [ "$a" = "$b" ]; then echo "$backnumb Sueccessed $maxFilesNumber" >> ~/LOGFILE.txt; else echo "$backnumb Error $maxFilesNumber" >> ~/LOGFILE.txt; fi 
+if [ "$a" = "$b" ]
+then echo "$backnumb Sueccessed $maxFilesNumber" >> ~/LOGFILE.txt
+else echo "$backnumb Error $maxFilesNumber" >> ~/LOGFILE.txt;
+fi
 rm -r ~/forsum
+fi
+
 sleep $period
 done
