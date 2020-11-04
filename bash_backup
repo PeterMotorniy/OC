@@ -19,6 +19,8 @@ echo -e " Exit status:"
 echo -e " Program returns 0 if it was called with atribute --help. In other cases during normal operation it doesn't return anything and works in a constant loop."
 exit 0;
 fi
+rm -rf $2
+mkdir $2
 if [ -n "$4" ]
 then
 period=$4
@@ -50,33 +52,22 @@ then
 rm -r $filename
 fi
 zip -r $filename $(find . -name "*$3") > /dev/null
-if [ -f ~/UNZIPED ]
-then
-rm -r ~/UNZIPED
+
+mv $filename $2
+cd ~/ || exit
+if [ -r forsum ]
+then rm -r forsum
 fi
-mkdir ~/UNZIPED
-unzip $filename -d ~/UNZIPED > /dev/null
-
-
-
-cd ~/UNZIPED || exit
-if [ -r forsum ]; then rm -r forsum; fi
 mkdir forsum
-cd forsum || exit
-unzip -o $1$filename > /dev/null
-for i in $(cat *$3 | md5sum) 
-do
-zipSum=$i
-break
-done
-cd .. || exit
-for i in $(cat *$3 | md5sum) 
-do
-origSum=$i
-break
-done
-if [ "$origSum" = "$zipSum" ]; then echo "Backup Sueccessed"; else echo "Error"; fi
-rm -r forsum
-rm -r ~/UNZIPED
+cp $2$filename ~/
+unzip -o ~/$filename -d forsum > /dev/null
+rm  ~/$filename
+cd ~/forsum || exit
+a="cat "*$3" | md5sum"
+cd $1 || exit
+b="cat "*$3" | md5sum"
+let backnumb="$i+1"
+if [ "$a" = "$b" ]; then echo "$backnumb Sueccessed $maxFilesNumber" >> ~/LOGFILE.txt; else echo "$backnumb Error $maxFilesNumber" >> ~/LOGFILE.txt; fi 
+rm -r ~/forsum
 sleep $period
 done
