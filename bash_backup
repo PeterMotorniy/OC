@@ -1,6 +1,5 @@
 #!/bin/bash
-count=0
-if [ "$1" = "--help" -o "$1" = "--h" -o "$1" = "-help" -o "$1" = "-h" -o "$1" = "" ]
+if [ "$1" = "--help" ] || [ "$1" = "--h" ] || [ "$1" = "-help" ] || [ "$1" = "-h" ] || [ "$1" = "" ]
 then
 echo -e "bash_backup: bash_backup filesDir backupDir extension [period] [maxBackupFiles] [backupStatus]"
 echo -e " Makes a backup of all files from the specified folder"
@@ -20,8 +19,8 @@ echo -e " Program returns 0 if it was called with atribute --help. In other case
 exit 0;
 fi
 
-rm -rf $2 #Prepearing for work
-mkdir $2
+rm -rf "$2" #Prepearing for work
+mkdir "$2"
 if [ -f LOGFILE.txt ]
 then
 rm -r ~/LOGFILE.txt
@@ -42,11 +41,11 @@ if [ "$6" -eq 1 ]
 then
 touch ~/LOGFILE.txt
 fi
-cd $1
+cd "$1" || exit
 
 for((i=0;i>-1;i++))
 do
-let numb="$i%$maxFilesNumber+1"
+(( numb="$i%$maxFilesNumber+1" ))
 filename="backup$numb.zip"
 
 if [ -f $filename ] # Delete old version
@@ -54,7 +53,7 @@ then
 rm -r $filename
 fi
 zip -r $filename $(find . -name "*$3") > /dev/null
-mv $filename $2 #Make new backup
+mv "$filename" $2 #Make new backup
 
 if [ "$6" -eq 1 ]
 then
@@ -64,7 +63,7 @@ if [ -r forsum ]
 then rm -r forsum
 fi
 mkdir forsum
-cp $2$filename ~/
+cp "$2$filename" ~/
 
 unzip -o ~/$filename -d forsum > /dev/null
 rm  ~/$filename
