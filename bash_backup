@@ -19,8 +19,13 @@ echo -e " Exit status:"
 echo -e " Program returns 0 if it was called with atribute --help. In other cases during normal operation it doesn't return anything and works in a constant loop."
 exit 0;
 fi
-rm -rf $2
+
+rm -rf $2 #Prepearing for work
 mkdir $2
+if [ -f LOGFILE.txt ]
+then
+rm -r ~/LOGFILE.txt
+fi
 if [ -n "$4" ]
 then
 period=$4
@@ -33,27 +38,23 @@ maxFilesNumber=$5
 else
 maxFilesNumber=2
 fi
-if [ -f LOGFILE.txt ]
-then
-rm -r ~/LOGFILE.txt
-fi
-
 if [ "$6" -eq 1 ]
 then
 touch ~/LOGFILE.txt
 fi
 cd $1
+
 for((i=0;i>-1;i++))
 do
 let numb="$i%$maxFilesNumber+1"
 filename="backup$numb.zip"
 
-if [ -f $filename ]
+if [ -f $filename ] # Delete old version
 then
 rm -r $filename
 fi
 zip -r $filename $(find . -name "*$3") > /dev/null
-mv $filename $2
+mv $filename $2 #Make new backup
 
 if [ "$6" -eq 1 ]
 then
@@ -68,11 +69,11 @@ cp $2$filename ~/
 unzip -o ~/$filename -d forsum > /dev/null
 rm  ~/$filename
 cd ~/forsum || exit
-a="cat "*$3" | md5sum"
+countedSum="cat "*$3" | md5sum" #Counting control sums
 cd $1 || exit
-b="cat "*$3" | md5sum"
+origSum="cat "*$3" | md5sum"
 let backnumb="$i+1"
-if [ "$a" = "$b" ]
+if [ "$origSum" = "$countedSum" ]
 then echo "$backnumb Sueccessed $maxFilesNumber" >> ~/LOGFILE.txt
 else echo "$backnumb Error $maxFilesNumber" >> ~/LOGFILE.txt;
 fi
