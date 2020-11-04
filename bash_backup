@@ -53,7 +53,7 @@ then
 rm -r $filename
 fi
 zip -r $filename $(find . -name "*$3") > /dev/null
-mv "$filename" $2 #Make new backup
+mv "$filename" "$2" #Make new backup
 
 if [ "$6" -eq 1 ]
 then
@@ -69,9 +69,9 @@ unzip -o ~/$filename -d forsum > /dev/null
 rm  ~/$filename
 cd ~/forsum || exit
 countedSum="cat "*$3" | md5sum" #Counting control sums
-cd $1 || exit
+cd "$1" || exit
 origSum="cat "*$3" | md5sum"
-let backnumb="$i+1"
+(( backnumb="$i+1" ))
 if [ "$origSum" = "$countedSum" ]
 then echo "$backnumb Sueccessed $maxFilesNumber" >> ~/LOGFILE.txt
 else echo "$backnumb Error $maxFilesNumber" >> ~/LOGFILE.txt;
