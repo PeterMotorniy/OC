@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ "$1" = "--help" ] || [ "$1" = "--h" ] || [ "$1" = "-help" ] || [ "$1" = "-h" ] || [ "$1" = "" ]
 then
-echo -e "bash_backup: bash_backup filesDir backupDir extension [period] [maxBackupFiles] [backupStatus]"
+echo -e "bash_backup: bash_backup [option] [valueOfOption] filesDir backupDir extension"
 echo -e " Makes a backup of all files from the specified folder"
 echo -e ""
 echo -e " Finds all files with specified extention in the folder and puts their archive copies in a special directory once in a while. After starting the pragram backupDir will be formated"
@@ -9,75 +9,129 @@ echo -e ""
 echo -e " Arguments:"
 echo -e " filesDir: Path to directory to backup."
 echo -e " backupDir: Path to directory to store backups."
-echo -e " extension: Extension of files to backup."
-echo -e " period: Period of making backups in seconds. Default value is 60."
-echo -e " maxBackupFiles: Number of backups that you need to store. Earlier versions will be replaced with more up-to-date versions in the course of work. Default value is 2."
-echo -e " backupStatus: If backupStatus = 1 program will create LOGFILE.txt in folder ~/ where will be stored results of making backups. Backup ... was made successfully means that files integrity was not compromised. Error in ... means that an error occurred while creating a copy of the files. If backupStatus != 1 LOGFILE.txt will not be created. "
+echo -e " extension: Extension of files to backup. Must be with '.'. For example .txt ."
+echo -e ""
+echo -e " Options:"
+echo -e " -p period: Period of making backups in seconds. Default value is 3600."
+echo -e " -d maxFilesNumber: Number of backups that you need to store. Earlier versions will be replaced with more up-to-date versions in the course of work. Default value is 100."
+echo -e " -s showStatus: If showStatus is 1 program will print information about its work and check backups with Control Sums. Else it will not check and not print anythink"
 echo -e ""
 echo -e " Exit status:"
-echo -e " Program returns 0 if it was called with atribute --help. In other cases during normal operation it doesn't return anything and works in a constant loop."
+echo -e " Program returns 0 if it was called with atribute —help. In other cases during normal operation it doesn't return anything and works in a constant loop."
+echo -e " IMPORTANT : All options must be single and stay BEFORE arguments. For example: bash bash_backup -s 0 -p 99 ~/files ~/backups .txt . If program can't find files with extension it will finish its work."
+
 exit 0;
 fi
 
-rm -rf "$2" #Prepearing for work
-mkdir "$2"
-if [ -f LOGFILE.txt ]
-then
-rm -r ~/LOGFILE.txt
+
+amountOfOptions=0
+period=3600
+status=-1
+delete=100
+function check_arg(){
+if [[ $2 == -* ]]; then
+echo "Option $1 requires an argument" >&2
+exit 1
 fi
-if [ -n "$4" ]
-then
-period=$4
-else
-period=60
+}
+function parse_param()
+{
+if [ -z "$1" ];then
+echo "Empty list of options" >&2
+exit 1
 fi
-if [ -n "$5" ]
-then
-maxFilesNumber=$5
-else
-maxFilesNumber=2
-fi
-if [ "$6" -eq 1 ]
-then
-touch ~/LOGFILE.txt
-fi
-cd "$1" || exit
+while getopts "p:s:d:" opt; do
+case $opt in
+p)
+check_arg "-p" "$OPTARG"
+let "amountOfOptions += 2"
+let "period=$OPTARG"
+;;
+s)
+check_arg "-s" "$OPTARG"
+let "amountOfOptions += 2"
+let "status=$OPTARG"
+;;
+d)
+check_arg "-d" "$OPTARG"
+let "amountOfOptions += 2"
+let "delete=$OPTARG"
+;;
+esac
+done
+}
+parse_param "$@"
+shift $amountOfOptions
+filesDirection=$1
+backupsDirection=$2
+extention=$3
+
+
+
+
+
+
+
+startAdress=$PWD
+cd $filesDirection
+filesAdress=$PWD
+cd $startAdress
+cd $backupsDirection
+backupsAdress=$PWD
+rm -rf "$backupsAdress" #Prepearing for work
+mkdir "$backupsAdress"
+
+
+
+
+cd "$filesAdress" || exit
 
 for((i=0;i>-1;i++))
 do
-(( numb="$i%$maxFilesNumber+1" ))
+(( numb="$i%$delete+1" ))
 filename="backup$numb.zip"
 
-if [ -f $filename ] # Delete old version
+if [ -f $backupsAdress/$filename ] # Delete old version
 then
-rm -r $filename
+rm -r $backupsAdress/$filename
 fi
-zip -r $filename $(find . -name "*$3") > /dev/null
-mv "$filename" "$2" #Make new backup
 
-if [ "$6" -eq 1 ]
+
+
+zip -r $filesAdress/$filename $(find . -name "*$extention") > /dev/null || exit
+mv "$filesAdress/$filename" "$backupsAdress" #Make new backup
+
+if [ "$status" -eq 1 ]
 then
 cd ~/ || exit
-
-if [ -r forsum ]
-then rm -r forsum
-fi
-mkdir forsum
-cp "$2$filename" ~/
-
-unzip -o ~/$filename -d forsum > /dev/null
-rm  ~/$filename
-cd ~/forsum || exit
-countedSum="cat "*$3" | md5sum" #Counting control sums
-cd "$1" || exit
-origSum="cat "*$3" | md5sum"
+echo "--------------------------------------"
 (( backnumb="$i+1" ))
-if [ "$origSum" = "$countedSum" ]
-then echo "$backnumb Sueccessed $maxFilesNumber" >> ~/LOGFILE.txt
-else echo "$backnumb Error $maxFilesNumber" >> ~/LOGFILE.txt;
+echo "Backup $backnumb was done!"
+echo ""
+if [ -r ~/forsum ]
+then rm -rf ~/forsum
 fi
-rm -r ~/forsum
-fi
+mkdir ~/forsum
+cp "$backupsAdress/$filename" ~/
 
+unzip -o ~/$filename -d ~/forsum > /dev/null
+rm -rf ~/$filename
+cd ~/forsum || exit
+countedSum="cat "*$extention" | md5sum" #Counting control sums
+echo "Constol Sum of archieve:"
+cat *$extention | md5sum 
+cd "$filesAdress" || exit
+origSum="cat "*$extention" | md5sum"
+echo "Control Sum of input directory:"
+cat *$extention | md5sum
+if [ "$origSum" = "$countedSum" ]
+then echo "Result: Success"
+else echo "Result: Error"
+fi
+rm -rf ~/forsum
+echo "--------------------------------------"
+echo ""
+fi
 sleep $period
 done
+
