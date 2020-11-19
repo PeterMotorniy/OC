@@ -57,6 +57,9 @@ check_arg "-d" "$OPTARG"
 let "amountOfOptions += 2"
 let "delete=$OPTARG"
 ;;
+*)
+exit
+;;
 esac
 done
 }
@@ -134,4 +137,3 @@ echo ""
 fi
 sleep $period
 done
-
