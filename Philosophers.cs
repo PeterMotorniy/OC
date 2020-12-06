@@ -81,7 +81,7 @@ namespace philosophers_os
                 think();
                 while (!(this.fork_left.free && this.fork_right.free))
                 {
-                    continue;
+                    Thread.Sleep(1);
                 }
                 if (leftNumber > rightNumer)
                 {
@@ -157,14 +157,14 @@ namespace philosophers_os
     {
         static void Main(string[] args)
         {
-            int N = 5;
+            int N = 100;
             bool dbg = true;
             int duration = 60000;
 
             Fork[] forks = new Fork[N];
             for (int i = 0; i < N; i++)
             {
-                forks[i] = new Fork() {number = i + 1};
+                forks[i] = new Fork() { number = i + 1 };
             }
 
             Philosopher[] phils = new Philosopher[N];
