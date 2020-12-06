@@ -72,6 +72,42 @@ namespace philosophers_os
             this.random = new Random();
         }
 
+        public void takeLeft()
+        {
+            this.fork_left.take();
+            if (this.debug_flag)
+            {
+                Console.WriteLine(this.id + " took left fork");
+            }
+        }
+
+        public void takeRight()
+        {
+            this.fork_right.take();
+            if (this.debug_flag)
+            {
+                Console.WriteLine(this.id + " took right fork");
+            }
+        }
+
+        public void putLeft()
+        {
+            this.fork_left.put();
+            if (this.debug_flag)
+            {
+                Console.WriteLine(this.id + " put left fork");
+            }
+        }
+
+        public void putRight()
+        {
+            this.fork_right.put();
+            if (this.debug_flag)
+            {
+                Console.WriteLine(this.id + " put right fork");
+            }
+        }
+
         public void run()
         {
             var leftNumber = this.fork_left.number;
@@ -85,59 +121,24 @@ namespace philosophers_os
                 }
                 if (leftNumber > rightNumer)
                 {
-                    this.fork_left.take();
-                    if (this.debug_flag)
-                    {
-                        Console.WriteLine(this.id + " took left fork");
-                    }
-
-                    this.fork_right.take();
-                    if (this.debug_flag)
-                    {
-                        Console.WriteLine(this.id + " took right fork");
-                    }
-
+                    takeLeft();
+                    takeRight();
                 }
                 else
                 {
-                    this.fork_right.take();
-                    if (this.debug_flag)
-                    {
-                        Console.WriteLine(this.id + " took right fork");
-                    }
-                    this.fork_left.take();
-                    if (this.debug_flag)
-                    {
-                        Console.WriteLine(this.id + " took left fork");
-                    }
+                    takeRight();
+                    takeLeft();
                 }
                 eat();
                 if (leftNumber > rightNumer)
                 {
-                    this.fork_right.put();
-                    if (this.debug_flag)
-                    {
-                        Console.WriteLine(this.id + " put right fork");
-                    }
-
-                    this.fork_left.put();
-                    if (this.debug_flag)
-                    {
-                        Console.WriteLine(this.id + " put left fork");
-                    }
+                    putRight();
+                    putLeft();
                 }
                 else
                 {
-                    this.fork_left.put();
-                    if (this.debug_flag)
-                    {
-                        Console.WriteLine(this.id + " put left fork");
-                    }
-                    this.fork_right.put();
-                    if (this.debug_flag)
-                    {
-                        Console.WriteLine(this.id + " put right fork");
-                    }
+                    putLeft();
+                    putRight();
                 }
             }
         }
@@ -157,7 +158,7 @@ namespace philosophers_os
     {
         static void Main(string[] args)
         {
-            int N = 100;
+            int N = 5;
             bool dbg = false;
             int duration = 60000;
 
