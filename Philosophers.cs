@@ -158,7 +158,7 @@ namespace philosophers_os
         static void Main(string[] args)
         {
             int N = 100;
-            bool dbg = true;
+            bool dbg = false;
             int duration = 60000;
 
             Fork[] forks = new Fork[N];
